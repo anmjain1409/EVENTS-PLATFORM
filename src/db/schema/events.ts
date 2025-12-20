@@ -2,12 +2,9 @@ import {
   mysqlTable,
   varchar,
   text,
-  boolean,
   datetime,
-  timestamp
+  boolean
 } from "drizzle-orm/mysql-core"
-
-import { sql } from "drizzle-orm"
 
 export const events = mysqlTable("events", {
   id: varchar("id", { length: 36 }).primaryKey(),
@@ -26,11 +23,11 @@ export const events = mysqlTable("events", {
 
   coverImageUrl: text("cover_image_url"),
 
-  createdAt: timestamp("created_at")
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-
-  updatedAt: timestamp("updated_at")
-    .default(sql`CURRENT_TIMESTAMP`)
+  createdAt: datetime("created_at")
     .notNull()
+    .default(new Date()),
+
+  updatedAt: datetime("updated_at")
+    .notNull()
+    .default(new Date())
 })
