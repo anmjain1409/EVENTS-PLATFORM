@@ -1,40 +1,74 @@
 "use client"
 
+import * as React from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
+
 import { getEvent, updateEvent } from "@/lib/api/event"
-import { useParams, useRouter } from "next/navigation"
+import EventForm from "@/components/event-form"
+import LoadingSkeleton from "@/components/LoadingSkeleton"
+import ErrorState from "@/components/ErrorState"
 
-export default function EditEventPage() {
-  const { id } = useParams<{ id: string }>()
+type PageProps = {
+  params: Promise<{
+    id: string
+  }>
+}
+
+export default function EditEventPage({ params }: PageProps) {
+  // ✅ IMPORTANT: unwrap params Promise
+  const { id } = React.use(params)
+
   const router = useRouter()
-  const qc = useQueryClient()
+  const queryClient = useQueryClient()
 
-  const { data } = useQuery({
+  /* =========================
+     FETCH EVENT
+  ========================= */
+  const {
+    data: event,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["event", id],
     queryFn: () => getEvent(id),
+    enabled: !!id,
   })
 
+  /* =========================
+     UPDATE EVENT
+  ========================= */
   const mutation = useMutation({
-    mutationFn: (payload: any) => updateEvent(id, payload),
+    mutationFn: (data: any) => updateEvent(id, data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["events"] })
+      queryClient.invalidateQueries({ queryKey: ["events"] })
+      queryClient.invalidateQueries({ queryKey: ["event", id] })
       router.push(`/events/${id}`)
     },
   })
 
-  if (!data) return null
+  /* =========================
+     UI STATES
+  ========================= */
+  if (isLoading) return <LoadingSkeleton />
 
-  function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    mutation.mutate(Object.fromEntries(new FormData(e.currentTarget)))
+  if (isError || !event) {
+    return <ErrorState onRetry={refetch} />
   }
 
+  /* =========================
+     MAIN UI
+  ========================= */
   return (
-    <form onSubmit={submit} className="p-6 max-w-xl mx-auto space-y-3">
-      <input name="title" defaultValue={data.title} className="input" />
-      <input name="location" defaultValue={data.location} className="input" />
-      <textarea name="description" defaultValue={data.description} className="input" />
-      <button className="btn">Update</button>
-    </form>
+    <div className="max-w-3xl mx-auto p-6">
+      <h1 className="text-2xl font-semibold mb-4">Edit Event</h1>
+
+      <EventForm
+        defaultValues={event}
+        onSubmit={(data) => mutation.mutate(data)}
+        isSubmitting={mutation.isPending}
+      />
+    </div>
   )
 }

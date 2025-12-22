@@ -4,20 +4,14 @@ import { events } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { eventSchema } from "@/lib/validators/event.schema"
 
-type Context = {
-  params: Promise<{
-    id: string
-  }>
-}
-
 /* =========================
    GET EVENT BY ID
 ========================= */
 export async function GET(
   _req: Request,
-  context: Context
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await context.params
+  const { id } = params
 
   if (!id) {
     return NextResponse.json(
@@ -43,7 +37,7 @@ export async function GET(
 
   return NextResponse.json({
     success: true,
-    data: event
+    data: event,
   })
 }
 
@@ -52,10 +46,10 @@ export async function GET(
 ========================= */
 export async function PUT(
   req: Request,
-  context: Context
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await context.params
+    const { id } = params
 
     if (!id) {
       return NextResponse.json(
@@ -66,16 +60,20 @@ export async function PUT(
 
     const body = await req.json()
 
-    // partial() → update me sab fields required nahi
+    // Update ke liye partial validation
     const data = eventSchema.partial().parse(body)
 
     await db
       .update(events)
       .set({
         ...data,
-        startDate: data.startDate ? new Date(data.startDate) : undefined,
-        endDate: data.endDate ? new Date(data.endDate) : undefined,
-        updatedAt: new Date()
+        startDate: data.startDate
+          ? new Date(data.startDate)
+          : undefined,
+        endDate: data.endDate
+          ? new Date(data.endDate)
+          : undefined,
+        updatedAt: new Date(),
       })
       .where(eq(events.id, id))
 
@@ -87,14 +85,16 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      data: updated[0]
+      data: updated[0],
     })
-
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
       {
         success: false,
-        message: error.message ?? "Internal server error"
+        message:
+          error instanceof Error
+            ? error.message
+            : "Internal server error",
       },
       { status: 500 }
     )
@@ -106,10 +106,10 @@ export async function PUT(
 ========================= */
 export async function DELETE(
   _req: Request,
-  context: Context
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await context.params
+    const { id } = params
 
     if (!id) {
       return NextResponse.json(
@@ -118,15 +118,13 @@ export async function DELETE(
       )
     }
 
-    await db
-      .delete(events)
-      .where(eq(events.id, id))
+    await db.delete(events).where(eq(events.id, id))
 
     return NextResponse.json({
       success: true,
-      message: "Event deleted successfully"
+      message: "Event deleted successfully",
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, message: "Internal server error" },
       { status: 500 }

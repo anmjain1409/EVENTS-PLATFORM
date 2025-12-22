@@ -1,130 +1,101 @@
-import type { EventInput } from "@/lib/validators/event.schema"
+// src/lib/api/event.ts
 
-/* ================= TYPES ================= */
-
-export type Event = {
-  id: string
+export type EventPayload = {
   title: string
   description: string
-  location: string
+  location?: string
   isOnline: boolean
   startDate: string
-  endDate: string
+  endDate?: string
 }
 
-type ApiResponse<T> = {
-  success: boolean
-  data: T
-  message?: string
-}
-
-/* ================= BASE ================= */
-
-const BASE_URL = "/api/events"
-
-/* ================= GET ALL EVENTS ================= */
-
-export async function getEvents(): Promise<Event[]> {
-  const res = await fetch(BASE_URL)
+/* =========================
+   INTERNAL RESPONSE HANDLER
+========================= */
+async function parseResponse(res: Response) {
+  const json = await res.json()
 
   if (!res.ok) {
-    throw new Error("Failed to fetch events")
-  }
-
-  const json: ApiResponse<Event[]> = await res.json()
-
-  if (!json.success) {
-    throw new Error(json.message ?? "Something went wrong")
+    throw new Error(json?.message || "Request failed")
   }
 
   return json.data
 }
 
-/* ================= GET SINGLE EVENT ================= */
+/* =========================
+   GET ALL EVENTS
+========================= */
+export async function getEvents() {
+  const res = await fetch("/api/events", {
+    cache: "no-store",
+  })
 
-export async function getEvent(id: string): Promise<Event> {
-  const res = await fetch(`${BASE_URL}/${id}`)
-
-  if (!res.ok) {
-    throw new Error("Event not found")
-  }
-
-  const json: ApiResponse<Event> = await res.json()
-
-  if (!json.success) {
-    throw new Error(json.message ?? "Event not found")
-  }
-
-  return json.data
+  return parseResponse(res)
 }
 
-/* ================= CREATE EVENT ================= */
+/* =========================
+   GET EVENT BY ID
+   ⚠️ NOTE:
+   - 404 → return null
+   - other errors → throw
+========================= */
+export async function getEvent(id: string) {
+  if (!id) return null
 
-export async function createEvent(
-  data: EventInput
-): Promise<Event> {
-  const res = await fetch(BASE_URL, {
+  const res = await fetch(`/api/events/${id}`, {
+    cache: "no-store",
+  })
+
+  if (res.status === 404) {
+    return null
+  }
+
+  return parseResponse(res)
+}
+
+/* =========================
+   CREATE EVENT
+========================= */
+export async function createEvent(data: EventPayload) {
+  const res = await fetch("/api/events", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
+    cache: "no-store",
   })
 
-  if (!res.ok) {
-    throw new Error("Failed to create event")
-  }
-
-  const json: ApiResponse<Event> = await res.json()
-
-  if (!json.success) {
-    throw new Error(json.message ?? "Failed to create event")
-  }
-
-  return json.data
+  return parseResponse(res)
 }
 
-/* ================= UPDATE EVENT ================= */
-
+/* =========================
+   UPDATE EVENT
+========================= */
 export async function updateEvent(
   id: string,
-  data: Partial<EventInput>
-): Promise<Event> {
-  const res = await fetch(`${BASE_URL}/${id}`, {
+  data: Partial<EventPayload>
+) {
+  const res = await fetch(`/api/events/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
+    cache: "no-store",
   })
 
-  if (!res.ok) {
-    throw new Error("Failed to update event")
-  }
-
-  const json: ApiResponse<Event> = await res.json()
-
-  if (!json.success) {
-    throw new Error(json.message ?? "Failed to update event")
-  }
-
-  return json.data
+  return parseResponse(res)
 }
 
-/* ================= DELETE EVENT ================= */
-
-export async function deleteEvent(id: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}/${id}`, {
+/* =========================
+   DELETE EVENT
+========================= */
+export async function deleteEvent(id: string) {
+  const res = await fetch(`/api/events/${id}`, {
     method: "DELETE",
+    cache: "no-store",
   })
 
-  if (!res.ok) {
-    throw new Error("Failed to delete event")
-  }
-
-  const json: ApiResponse<null> = await res.json()
-
-  if (!json.success) {
-    throw new Error(json.message ?? "Failed to delete event")
-  }
+  return parseResponse(res)
 }

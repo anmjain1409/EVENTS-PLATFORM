@@ -1,33 +1,19 @@
 import {
-  mysqlTable,
+  pgTable,
   varchar,
   text,
-  datetime,
-  boolean
-} from "drizzle-orm/mysql-core"
+  boolean,
+  timestamp,
+} from "drizzle-orm/pg-core"
 
-export const events = mysqlTable("events", {
+export const events = pgTable("events", {
   id: varchar("id", { length: 36 }).primaryKey(),
-
   title: varchar("title", { length: 255 }).notNull(),
-
-  description: text("description"),
-
-  location: varchar("location", { length: 255 }).notNull(),
-
-  isOnline: boolean("is_online").default(false),
-
-  startDate: datetime("start_date").notNull(),
-
-  endDate: datetime("end_date").notNull(),
-
-  coverImageUrl: text("cover_image_url"),
-
-  createdAt: datetime("created_at")
-    .notNull()
-    .default(new Date()),
-
-  updatedAt: datetime("updated_at")
-    .notNull()
-    .default(new Date())
+  description: text("description").notNull(),
+  location: varchar("location", { length: 255 }),
+  isOnline: boolean("is_online").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 })

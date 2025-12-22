@@ -16,21 +16,26 @@ export default function CreateEventPage() {
     },
   })
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const form = e.currentTarget
-    const data = Object.fromEntries(new FormData(form))
-    mutation.mutate(data as any)
+    const form = new FormData(e.currentTarget)
+
+    mutation.mutate({
+      title: form.get("title") as string,
+      description: form.get("description") as string,
+      location: form.get("location") as string,
+      isOnline: false,
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
+    })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 max-w-xl mx-auto space-y-3">
-      <input name="title" placeholder="Title" className="input" required />
-      <input name="location" placeholder="Location" className="input" required />
+    <form onSubmit={submit} className="p-6 max-w-xl mx-auto space-y-4">
+      <h1 className="text-xl font-bold">Create Event</h1>
+      <input name="title" placeholder="Title" className="input" />
+      <input name="location" placeholder="Location" className="input" />
       <textarea name="description" placeholder="Description" className="input" />
-      <input name="startDate" type="datetime-local" className="input" />
-      <input name="endDate" type="datetime-local" className="input" />
-
       <button className="btn">Create</button>
     </form>
   )

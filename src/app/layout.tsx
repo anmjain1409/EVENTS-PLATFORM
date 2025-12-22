@@ -8,10 +8,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 text-gray-900">
-        <QueryProvider>
-          {children}
-        </QueryProvider>
+      <body>
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   )

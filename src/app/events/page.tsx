@@ -1,49 +1,69 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { getEvents } from "@/lib/api/event"
 import Link from "next/link"
 import { motion } from "framer-motion"
 
+import { getEvents } from "@/lib/api/event"
+import EventCard from "@/components/EventCard"
+import LoadingSkeleton from "@/components/LoadingSkeleton"
+import EmptyState from "@/components/EmptyState"
+import ErrorState from "@/components/ErrorState"
+
 export default function EventsPage() {
-  const { data, isLoading } = useQuery({
+  const {
+    data: events = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["events"],
     queryFn: getEvents,
   })
 
+  /* =========================
+     UI STATES
+  ========================= */
   if (isLoading) {
-    return <p className="p-6">Loading...</p>
+    return <LoadingSkeleton />
   }
 
+  if (isError) {
+    return <ErrorState onRetry={refetch} />
+  }
+
+  if (events.length === 0) {
+    return <EmptyState />
+  }
+
+  /* =========================
+     MAIN UI
+  ========================= */
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="flex justify-between mb-4">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="max-w-6xl mx-auto p-6"
+    >
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Events</h1>
-        <Link href="/events/create" className="btn">
-          Create Event
+
+        <Link href="/events/create">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            className="bg-black text-white px-4 py-2 rounded-md"
+          >
+            + Create Event
+          </motion.button>
         </Link>
       </div>
 
-      <div className="space-y-4">
-        {data?.map((event) => (
-          <motion.div
-            key={event.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="p-4 bg-white rounded shadow"
-          >
-            <h2 className="font-semibold">{event.title}</h2>
-            <p className="text-sm text-gray-600">{event.location}</p>
-
-            <Link
-              href={`/events/${event.id}`}
-              className="text-blue-600 text-sm"
-            >
-              View →
-            </Link>
-          </motion.div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {events.map((event: any) => (
+          <EventCard key={event.id} event={event} />
         ))}
       </div>
-    </div>
+    </motion.div>
   )
 }
