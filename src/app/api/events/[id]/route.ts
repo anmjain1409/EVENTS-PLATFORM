@@ -10,9 +10,6 @@ type RouteContext = {
   }>
 }
 
-/* =========================
-   GET EVENT BY ID
-========================= */
 export async function GET(
   _req: NextRequest,
   context: RouteContext
@@ -34,15 +31,9 @@ export async function GET(
     )
   }
 
-  return NextResponse.json({
-    success: true,
-    data: event,
-  })
+  return NextResponse.json({ success: true, data: event })
 }
 
-/* =========================
-   UPDATE EVENT
-========================= */
 export async function PUT(
   req: NextRequest,
   context: RouteContext
@@ -56,12 +47,8 @@ export async function PUT(
     .update(events)
     .set({
       ...data,
-      startDate: data.startDate
-        ? new Date(data.startDate)
-        : undefined,
-      endDate: data.endDate
-        ? new Date(data.endDate)
-        : undefined,
+      startDate: data.startDate ? new Date(data.startDate) : undefined,
+      endDate: data.endDate ? new Date(data.endDate) : undefined,
       updatedAt: new Date(),
     })
     .where(eq(events.id, id))
@@ -72,15 +59,9 @@ export async function PUT(
     .where(eq(events.id, id))
     .limit(1)
 
-  return NextResponse.json({
-    success: true,
-    data: updated[0],
-  })
+  return NextResponse.json({ success: true, data: updated[0] })
 }
 
-/* =========================
-   DELETE EVENT
-========================= */
 export async function DELETE(
   _req: NextRequest,
   context: RouteContext
