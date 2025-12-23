@@ -1,9 +1,11 @@
 import { db } from "@/db"
 import { events } from "@/db/schema"
 import { EventInput } from "@/lib/validators/event.schema"
-import { eq, desc, sql } from "drizzle-orm"
+import { eq, desc } from "drizzle-orm"
 
-// Create a new event
+/* =========================
+   CREATE EVENT
+========================= */
 export async function createEvent(data: EventInput) {
   const id = crypto.randomUUID()
 
@@ -15,35 +17,46 @@ export async function createEvent(data: EventInput) {
     isOnline: data.isOnline,
     startDate: new Date(data.startDate),
     endDate: new Date(data.endDate),
-    coverImageUrl: data.coverImageUrl
+    coverImageUrl: data.coverImageUrl,
   })
 
-  const [event] = await db
+  const result = await db
     .select()
     .from(events)
     .where(eq(events.id, id))
+    .limit(1)
 
-  return event
+  return result[0]
 }
 
-// Get all events
+/* =========================
+   GET ALL EVENTS
+========================= */
 export async function getAllEvents() {
-  return await db
+  const result = await db
     .select()
     .from(events)
     .orderBy(desc(events.createdAt))
+
+  return result
 }
 
-// Get single event by ID  ✅ FIXED
+/* =========================
+   GET EVENT BY ID
+========================= */
 export async function getEventById(id: string) {
-  const result = await db.execute(
-    sql`SELECT * FROM events WHERE id = ${id} LIMIT 1`
-  )
+  const result = await db
+    .select()
+    .from(events)
+    .where(eq(events.id, id))
+    .limit(1)
 
   return result[0] ?? null
 }
 
-// Update an event
+/* =========================
+   UPDATE EVENT
+========================= */
 export async function updateEvent(
   id: string,
   data: Partial<EventInput>
@@ -51,17 +64,23 @@ export async function updateEvent(
   await db
     .update(events)
     .set({
-      ...data,
+      title: data.title,
+      description: data.description,
+      location: data.location,
+      isOnline: data.isOnline,
+      coverImageUrl: data.coverImageUrl,
       startDate: data.startDate ? new Date(data.startDate) : undefined,
       endDate: data.endDate ? new Date(data.endDate) : undefined,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
     .where(eq(events.id, id))
 
   return getEventById(id)
 }
 
-// Delete an event
+/* =========================
+   DELETE EVENT
+========================= */
 export async function deleteEvent(id: string) {
   await db.delete(events).where(eq(events.id, id))
   return true
