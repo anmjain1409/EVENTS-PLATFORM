@@ -1,7 +1,7 @@
 import { db } from "@/db"
 import { events } from "@/db/schema"
+import { eq } from "drizzle-orm"
 import { EventInput } from "@/lib/validators/event.schema"
-import { eq, desc } from "drizzle-orm"
 
 /* =========================
    CREATE EVENT
@@ -15,43 +15,32 @@ export async function createEvent(data: EventInput) {
     description: data.description,
     location: data.location,
     isOnline: data.isOnline,
-    startDate: new Date(data.startDate),
-    endDate: new Date(data.endDate),
     coverImageUrl: data.coverImageUrl,
+    startDate: data.startDate ? new Date(data.startDate) : null,
+    endDate: data.endDate ? new Date(data.endDate) : null,
   })
 
-  const result = await db
-    .select()
-    .from(events)
-    .where(eq(events.id, id))
-    .limit(1)
-
-  return result[0]
+  return getEventById(id)
 }
 
 /* =========================
-   GET ALL EVENTS
+   GET ALL EVENTS  ✅ FIXED
 ========================= */
 export async function getAllEvents() {
-  const result = await db
-    .select()
-    .from(events)
-    .orderBy(desc(events.createdAt))
-
-  return result
+  return await db.query.events.findMany({
+    orderBy: (events, { desc }) => [desc(events.createdAt)],
+  })
 }
 
 /* =========================
    GET EVENT BY ID
 ========================= */
 export async function getEventById(id: string) {
-  const result = await db
-    .select()
-    .from(events)
-    .where(eq(events.id, id))
-    .limit(1)
+  const result = await db.query.events.findFirst({
+    where: eq(events.id, id),
+  })
 
-  return result[0] ?? null
+  return result ?? null
 }
 
 /* =========================
