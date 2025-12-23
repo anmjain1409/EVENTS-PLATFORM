@@ -50,17 +50,8 @@ export async function PUT(
 ) {
   try {
     const { id } = params
-
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: "Missing event id" },
-        { status: 400 }
-      )
-    }
-
     const body = await req.json()
 
-    // Update ke liye partial validation
     const data = eventSchema.partial().parse(body)
 
     await db
@@ -87,14 +78,11 @@ export async function PUT(
       success: true,
       data: updated[0],
     })
-  } catch (error: unknown) {
+  } catch (error: any) {
     return NextResponse.json(
       {
         success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Internal server error",
+        message: error.message ?? "Internal server error",
       },
       { status: 500 }
     )
@@ -110,13 +98,6 @@ export async function DELETE(
 ) {
   try {
     const { id } = params
-
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: "Missing event id" },
-        { status: 400 }
-      )
-    }
 
     await db.delete(events).where(eq(events.id, id))
 
