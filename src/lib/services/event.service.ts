@@ -24,7 +24,7 @@ export async function createEvent(data: EventInput) {
 }
 
 /* =========================
-   GET ALL EVENTS  ✅ FIXED
+   GET ALL EVENTS
 ========================= */
 export async function getAllEvents() {
   return await db.query.events.findMany({

@@ -35,9 +35,6 @@ export async function getEvents() {
 
 /* =========================
    GET EVENT BY ID
-   ⚠️ NOTE:
-   - 404 → return null
-   - other errors → throw
 ========================= */
 export async function getEvent(id: string) {
   if (!id) return null

@@ -16,7 +16,7 @@ type PageProps = {
 }
 
 export default function EditEventPage({ params }: PageProps) {
-  // ✅ IMPORTANT: unwrap params Promise
+//unwrap params Promise
   const { id } = React.use(params)
 
   const router = useRouter()
