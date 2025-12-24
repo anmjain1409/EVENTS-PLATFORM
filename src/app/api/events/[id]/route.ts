@@ -5,31 +5,25 @@ import { eq } from "drizzle-orm"
 import { eventSchema } from "@/lib/validators/event.schema"
 
 /**
- * Force this API route to be evaluated at runtime only
+ * Force this API route to run only at runtime
  */
 export const dynamic = "force-dynamic"
-
-type Params = {
-  params: {
-    id: string
-  }
-}
 
 /* =========================
    GET EVENT BY ID
 ========================= */
 export async function GET(
   _req: NextRequest,
-  { params }: Params
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params
     const db = getDb()
-    const eventId = params.id
 
     const result = await db
       .select()
       .from(events)
-      .where(eq(events.id, eventId))
+      .where(eq(events.id, id))
       .limit(1)
 
     if (!result.length) {
@@ -56,11 +50,11 @@ export async function GET(
 ========================= */
 export async function PUT(
   req: NextRequest,
-  { params }: Params
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params
     const db = getDb()
-    const eventId = params.id
     const body = await req.json()
     const data = eventSchema.partial().parse(body)
 
@@ -76,12 +70,12 @@ export async function PUT(
         endDate: data.endDate ? new Date(data.endDate) : undefined,
         updatedAt: new Date(),
       })
-      .where(eq(events.id, eventId))
+      .where(eq(events.id, id))
 
     const updated = await db
       .select()
       .from(events)
-      .where(eq(events.id, eventId))
+      .where(eq(events.id, id))
       .limit(1)
 
     return NextResponse.json({
@@ -101,13 +95,13 @@ export async function PUT(
 ========================= */
 export async function DELETE(
   _req: NextRequest,
-  { params }: Params
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params
     const db = getDb()
-    const eventId = params.id
 
-    await db.delete(events).where(eq(events.id, eventId))
+    await db.delete(events).where(eq(events.id, id))
 
     return NextResponse.json({
       success: true,

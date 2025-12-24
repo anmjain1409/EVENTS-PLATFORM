@@ -1,113 +1,57 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getDb } from "@/db"
-import { events } from "@/db/schema"
-import { eq } from "drizzle-orm"
+import { getAllEvents, createEvent } from "@/lib/services/event.service"
 import { eventSchema } from "@/lib/validators/event.schema"
 
+/**
+ * IMPORTANT:
+ * Ensure this route is evaluated only at runtime (not at build time)
+ */
 export const dynamic = "force-dynamic"
 
 /* =========================
-   GET EVENT BY ID
+   GET ALL EVENTS
 ========================= */
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET() {
   try {
-    const db = getDb()
-    const eventId = params.id
-
-    const result = await db
-      .select()
-      .from(events)
-      .where(eq(events.id, eventId))
-      .limit(1)
-
-    if (!result.length) {
-      return NextResponse.json(
-        { success: false, message: "Event not found" },
-        { status: 404 }
-      )
-    }
+    const events = await getAllEvents()
 
     return NextResponse.json({
       success: true,
-      data: result[0],
+      data: events,
     })
-  } catch {
+  } catch (error) {
+    console.error("GET /api/events error:", error)
+
     return NextResponse.json(
-      { success: false, message: "Failed to fetch event" },
+      { success: false, message: "Failed to fetch events" },
       { status: 500 }
     )
   }
 }
 
 /* =========================
-   UPDATE EVENT
+   CREATE EVENT
 ========================= */
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: NextRequest) {
   try {
-    const db = getDb()
-    const eventId = params.id
     const body = await req.json()
-    const data = eventSchema.partial().parse(body)
+    const data = eventSchema.parse(body)
 
-    await db
-      .update(events)
-      .set({
-        title: data.title,
-        description: data.description,
-        location: data.location,
-        isOnline: data.isOnline,
-        coverImageUrl: data.coverImageUrl,
-        startDate: data.startDate ? new Date(data.startDate) : undefined,
-        endDate: data.endDate ? new Date(data.endDate) : undefined,
-        updatedAt: new Date(),
-      })
-      .where(eq(events.id, eventId))
+    const event = await createEvent(data)
 
-    const updated = await db
-      .select()
-      .from(events)
-      .where(eq(events.id, eventId))
-      .limit(1)
-
-    return NextResponse.json({
-      success: true,
-      data: updated[0],
-    })
-  } catch {
     return NextResponse.json(
-      { success: false, message: "Failed to update event" },
-      { status: 500 }
+      {
+        success: true,
+        data: event,
+      },
+      { status: 201 }
     )
-  }
-}
+  } catch (error) {
+    console.error("POST /api/events error:", error)
 
-/* =========================
-   DELETE EVENT
-========================= */
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const db = getDb()
-    const eventId = params.id
-
-    await db.delete(events).where(eq(events.id, eventId))
-
-    return NextResponse.json({
-      success: true,
-      message: "Event deleted successfully",
-    })
-  } catch {
     return NextResponse.json(
-      { success: false, message: "Failed to delete event" },
-      { status: 500 }
+      { success: false, message: "Failed to create event" },
+      { status: 400 }
     )
   }
 }
