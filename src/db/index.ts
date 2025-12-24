@@ -1,7 +1,13 @@
 import { drizzle } from "drizzle-orm/neon-http"
 import { neon } from "@neondatabase/serverless"
-import * as schema from "./schema"
 
-const sql = neon(process.env.DATABASE_URL!)
+let dbInstance: ReturnType<typeof drizzle> | null = null
 
-export const db = drizzle(sql, { schema })
+export function getDb() {
+  if (!dbInstance) {
+    const sql = neon(process.env.DATABASE_URL!)
+    dbInstance = drizzle(sql)
+  }
+
+  return dbInstance
+}

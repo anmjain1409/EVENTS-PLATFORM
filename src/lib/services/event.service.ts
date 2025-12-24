@@ -1,12 +1,13 @@
-import { db } from "@/db"
+import { getDb } from "@/db"
 import { events } from "@/db/schema"
-import { eq } from "drizzle-orm"
+import { eq, desc } from "drizzle-orm"
 import { EventInput } from "@/lib/validators/event.schema"
 
 /* =========================
    CREATE EVENT
 ========================= */
 export async function createEvent(data: EventInput) {
+  const db = getDb()
   const id = crypto.randomUUID()
 
   await db.insert(events).values({
@@ -18,6 +19,8 @@ export async function createEvent(data: EventInput) {
     coverImageUrl: data.coverImageUrl,
     startDate: data.startDate ? new Date(data.startDate) : null,
     endDate: data.endDate ? new Date(data.endDate) : null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   })
 
   return getEventById(id)
@@ -27,20 +30,27 @@ export async function createEvent(data: EventInput) {
    GET ALL EVENTS
 ========================= */
 export async function getAllEvents() {
-  return await db.query.events.findMany({
-    orderBy: (events, { desc }) => [desc(events.createdAt)],
-  })
+  const db = getDb()
+
+  return await db
+    .select()
+    .from(events)
+    .orderBy(desc(events.createdAt))
 }
 
 /* =========================
    GET EVENT BY ID
 ========================= */
 export async function getEventById(id: string) {
-  const result = await db.query.events.findFirst({
-    where: eq(events.id, id),
-  })
+  const db = getDb()
 
-  return result ?? null
+  const result = await db
+    .select()
+    .from(events)
+    .where(eq(events.id, id))
+    .limit(1)
+
+  return result[0] ?? null
 }
 
 /* =========================
@@ -50,6 +60,8 @@ export async function updateEvent(
   id: string,
   data: Partial<EventInput>
 ) {
+  const db = getDb()
+
   await db
     .update(events)
     .set({
@@ -71,6 +83,8 @@ export async function updateEvent(
    DELETE EVENT
 ========================= */
 export async function deleteEvent(id: string) {
+  const db = getDb()
+
   await db.delete(events).where(eq(events.id, id))
   return true
 }
