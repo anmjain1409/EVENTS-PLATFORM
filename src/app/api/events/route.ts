@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getAllEvents, createEvent } from "@/lib/services/event.service"
 import { eventSchema } from "@/lib/validators/event.schema"
 
+
 export async function GET() {
   try {
     const events = await getAllEvents()

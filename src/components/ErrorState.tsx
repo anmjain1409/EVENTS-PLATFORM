@@ -1,21 +1,19 @@
-export default function ErrorState({
-  onRetry,
-}: {
+type Props = {
   onRetry: () => void
-}) {
+}
+
+export function ErrorState({ onRetry }: Props) {
   return (
-    <div className="min-h-[60vh] flex items-center justify-center">
-      <div className="border rounded-xl p-6 text-center">
-        <h2 className="text-lg font-semibold mb-2">
-          Something went wrong
-        </h2>
-        <p className="text-gray-500 mb-4">
-          Please try again
+    <div className="flex flex-col items-center justify-center py-20">
+      <div className="rounded-xl border p-6 text-center max-w-md">
+        <h2 className="text-lg font-semibold">Something went wrong</h2>
+        <p className="text-gray-500 mt-2">
+          Failed to load events. Please try again.
         </p>
 
         <button
           onClick={onRetry}
-          className="bg-black text-white px-4 py-2 rounded-md"
+          className="mt-4 rounded bg-black px-4 py-2 text-white hover:bg-gray-800"
         >
           Retry
         </button>

@@ -6,13 +6,16 @@ import { motion } from "framer-motion"
 
 import { getEvents } from "@/lib/api/event"
 import EventCard from "@/components/EventCard"
-import LoadingSkeleton from "@/components/LoadingSkeleton"
-import EmptyState from "@/components/EmptyState"
-import ErrorState from "@/components/ErrorState"
+import { EmptyState } from "@/components/EmptyState"
+import { ErrorState } from "@/components/ErrorState"
+import { LoadingSkeleton } from "@/components/LoadingSkeleton"
 
+/* =========================
+   PAGE
+========================= */
 export default function EventsPage() {
   const {
-    data: events = [],
+    data: events,
     isLoading,
     isError,
     refetch,
@@ -32,7 +35,7 @@ export default function EventsPage() {
     return <ErrorState onRetry={refetch} />
   }
 
-  if (events.length === 0) {
+  if (!events || events.length === 0) {
     return <EmptyState />
   }
 
@@ -46,20 +49,22 @@ export default function EventsPage() {
       transition={{ duration: 0.3 }}
       className="max-w-6xl mx-auto p-6"
     >
-      <div className="flex justify-between items-center mb-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Events</h1>
 
         <Link href="/events/create">
           <motion.button
             whileTap={{ scale: 0.95 }}
-            className="bg-black text-white px-4 py-2 rounded-md"
+            className="rounded-md bg-black px-4 py-2 text-white hover:bg-gray-800"
           >
             + Create Event
           </motion.button>
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      {/* Events Grid */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         {events.map((event: any) => (
           <EventCard key={event.id} event={event} />
         ))}
