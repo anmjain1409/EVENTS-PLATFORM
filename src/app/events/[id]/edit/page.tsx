@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation"
 
 import { getEvent, updateEvent } from "@/lib/api/event"
 import EventForm from "@/components/event-form"
-import LoadingSkeleton from "@/components/LoadingSkeleton"
-import ErrorState from "@/components/ErrorState"
+import {LoadingSkeleton} from "@/components/LoadingSkeleton"
+import {ErrorState} from "@/components/ErrorState"
 
 type PageProps = {
   params: Promise<{
