@@ -4,6 +4,7 @@ import { events } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { eventSchema } from "@/lib/validators/event.schema"
 
+export const dynamic = "force-dynamic"
 type Params = {
   params: Promise<{
     id: string
